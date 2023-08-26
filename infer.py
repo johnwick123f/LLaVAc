@@ -3,6 +3,7 @@ import argparse
 import requests
 from PIL import Image
 from io import BytesIO
+from transformers import BitsAndBytesConfig
 
 import torch
 from transformers import AutoTokenizer
@@ -65,8 +66,13 @@ def eval_model(args):
     disable_torch_init()
     model_name = os.path.expanduser(args.model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-    model = LlavaLlamaForCausalLM.from_pretrained(model_name, low_cpu_mem_usage=True, torch_dtype=torch.float16, use_cache=True).cuda()
+    bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_use_double_quant=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16
+    )
+    model = LlavaLlamaForCausalLM.from_pretrained(model_name, quantization_config=bnb_config, low_cpu_mem_usage=True, torch_dtype=torch.bfloat16, use_cache=True, device_map="auto")
     image_processor = CLIPImageProcessor.from_pretrained(model.config.mm_vision_tower, torch_dtype=torch.float16)
 
     mm_use_im_start_end = getattr(model.config, "mm_use_im_start_end", False)
