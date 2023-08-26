@@ -98,20 +98,8 @@ def eval_model(args):
         qs = qs + '\n' + DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_PATCH_TOKEN * image_token_len + DEFAULT_IM_END_TOKEN
     else:
         qs = qs + '\n' + DEFAULT_IMAGE_PATCH_TOKEN * image_token_len
-
-    query = {
-        "conversations": [
-            {
-                'from': 'human',
-                'value': qs
-            },
-            {
-                'from': 'gpt',
-                'value': ''
-            }
-        ]
-    }
-    input_ids = [tokenize(query, tokenizer, args.llm_type)]
+    
+    input_ids = [tokenize(qs, tokenizer, args.llm_type)]
     input_ids = torch.as_tensor(input_ids).cuda()
 
     image = load_image(args.image_file)
@@ -120,31 +108,14 @@ def eval_model(args):
     stop_str = '</s>'
     keywords = [stop_str]
     stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
-
-    with torch.inference_mode():
-        output_ids = model.generate(
-            input_ids,
-            images=image_tensor.unsqueeze(0).half().cuda(),
-            do_sample=True,
-            temperature=0.2,
-            max_new_tokens=1024,
-            stopping_criteria=[stopping_criteria])
-
-    input_token_len = input_ids.shape[1]
-    n_diff_input_output = (input_ids != output_ids[:, :input_token_len]).sum().item()
-    if n_diff_input_output > 0:
-        print(f'[Warning] {n_diff_input_output} output_ids are not the same as the input_ids')
-    outputs = tokenizer.batch_decode(output_ids[:, input_token_len:], skip_special_tokens=True)[0]
-    outputs = outputs.strip()
-    if outputs.endswith(stop_str):
-        outputs = outputs[:-len(stop_str)]
-    outputs = outputs.strip()
-
-    print_signature()
-    print (f"Human: image({args.image_file}) {args.query}")
-    print (f"Chinese-LLaVA: {outputs}")
-    print ("="*80)
-    print ("Go to the Demo page, and have a try!")
+    generation_kwargs = dict(**inputs, streamer=streamer, max_new_tokens=200, temperature = 0.1,top_k = 20,top_p = 0.4,do_sample=True, repetition_penalty=1.2)
+    thread = Thread(target=model.generate, kwargs=generation_kwargs)
+    thread.start()
+    generated_text = ""
+    for new_text in streamer:
+        print(new_text, end='', flush=True)
+        if new_text.endswith(stop_str):
+            outputs = new_text[:-len(stop_str)]
 
 
 if __name__ == "__main__":
