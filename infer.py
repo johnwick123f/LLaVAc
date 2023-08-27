@@ -65,14 +65,14 @@ def eval_model(args):
     # Model
     disable_torch_init()
     model_name = os.path.expanduser(args.model_name)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained("/kaggle/working/llavamodel")
     bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_use_double_quant=True,
     bnb_4bit_quant_type="nf4",
     bnb_4bit_compute_dtype=torch.float16
     )
-    model = LlavaLlamaForCausalLM.from_pretrained(model_name, quantization_config=bnb_config, low_cpu_mem_usage=True, use_cache=True, device_map="auto")
+    model = LlavaLlamaForCausalLM.from_pretrained("/kaggle/working/llavamodel", quantization_config=bnb_config, low_cpu_mem_usage=True, use_cache=True, device_map="auto")
     image_processor = CLIPImageProcessor.from_pretrained(model.config.mm_vision_tower, torch_dtype=torch.float16)
 
     mm_use_im_start_end = getattr(model.config, "mm_use_im_start_end", False)
@@ -101,8 +101,8 @@ def eval_model(args):
     
     #input_ids = [tokenize(qs, tokenizer, args.llm_type)]
     streamer = TextIteratorStreamer(tokenizer)
-    inputs = tokenizer(qs, return_tensors="pt", return_token_type_ids=False)
-    input_ids = inputs.input_ids.to('cuda')
+    inputs = tokenizer(qs, return_tensors="pt", return_token_type_ids=False).to('cuda')
+    #input_ids = inputs.to('cuda')
     input_ids = torch.as_tensor(input_ids)
 
     image = load_image(args.image_file)
@@ -111,7 +111,7 @@ def eval_model(args):
     stop_str = '</s>'
     keywords = [stop_str]
     stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
-    generation_kwargs = dict(input_ids, streamer=streamer, max_new_tokens=200, temperature = 0.7 ,do_sample=True, repetition_penalty=1.2)
+    generation_kwargs = dict(**inputs, streamer=streamer, max_new_tokens=200, temperature = 0.7 ,do_sample=True, repetition_penalty=1.2)
     thread = Thread(target=model.generate, kwargs=generation_kwargs)
     thread.start()
     generated_text = ""
