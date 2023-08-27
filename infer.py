@@ -4,7 +4,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 from transformers import BitsAndBytesConfig
-
+from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
 import torch
 from transformers import AutoTokenizer
 from transformers import CLIPVisionModel, CLIPImageProcessor, StoppingCriteria
@@ -100,6 +100,7 @@ def eval_model(args):
         qs = qs + '\n' + DEFAULT_IMAGE_PATCH_TOKEN * image_token_len
     
     #input_ids = [tokenize(qs, tokenizer, args.llm_type)]
+    streamer = TextIteratorStreamer(tokenizer)
     inputs = tokenizer(qs, return_tensors="pt")
     input_ids = torch.as_tensor(inputs.input_ids).cuda()
 
