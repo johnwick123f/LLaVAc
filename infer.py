@@ -102,7 +102,8 @@ def eval_model(args):
     #input_ids = [tokenize(qs, tokenizer, args.llm_type)]
     streamer = TextIteratorStreamer(tokenizer)
     inputs = tokenizer(qs, return_tensors="pt", return_token_type_ids=False)
-    input_ids = torch.as_tensor(inputs.input_ids).cuda()
+    input_ids = inputs.input_ids.to('cuda')
+    input_ids = torch.as_tensor(input_ids)
 
     image = load_image(args.image_file)
     image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
