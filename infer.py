@@ -123,7 +123,7 @@ def eval_model(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-name", type=str, default="facebook/opt-350m")
+    parser.add_argument("--model-name", type=str, default="/kaggle/working/llavamodel")
     parser.add_argument('--llm_type', type=str, default='Chinese_llama2')
     parser.add_argument("--image-file", type=str, required=True)
     parser.add_argument("--query", type=str, required=True)
