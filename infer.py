@@ -96,13 +96,14 @@ def eval_model(args):
     qs = args.query
     if mm_use_im_start_end:
         qs = qs + '\n' + DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_PATCH_TOKEN * image_token_len + DEFAULT_IM_END_TOKEN
+        qs = qs + "\nResponse:"
     else:
         qs = qs + '\n' + DEFAULT_IMAGE_PATCH_TOKEN * image_token_len
-    
+        qs = qs + "\nResponse:"
     #input_ids = [tokenize(qs, tokenizer, args.llm_type)]
     streamer = TextIteratorStreamer(tokenizer)
     inputs = tokenizer(qs, return_tensors="pt", return_token_type_ids=False).to('cuda')
-    #input_ids = inputs.to('cuda')
+    input_ids = inputs.to('cuda')
     input_ids = torch.as_tensor(input_ids)
 
     image = load_image(args.image_file)
@@ -110,15 +111,15 @@ def eval_model(args):
 
     stop_str = '</s>'
     keywords = [stop_str]
-    stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
+    #stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
     generation_kwargs = dict(**inputs, streamer=streamer, max_new_tokens=200, temperature = 0.7 ,do_sample=True, repetition_penalty=1.2)
     thread = Thread(target=model.generate, kwargs=generation_kwargs)
     thread.start()
     generated_text = ""
     for new_text in streamer:
         print(new_text, end='', flush=True)
-        if new_text.endswith(stop_str):
-            outputs = new_text[:-len(stop_str)]
+        #if new_text.endswith(stop_str):
+            #outputs = new_text[:-len(stop_str)]
 
 
 if __name__ == "__main__":
