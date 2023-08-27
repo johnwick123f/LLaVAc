@@ -102,13 +102,13 @@ def eval_model(args):
         qs = qs + "\nResponse:"
     #input_ids = [tokenize(qs, tokenizer, args.llm_type)]
     streamer = TextIteratorStreamer(tokenizer)
-    inputs = tokenizer(qs, return_tensors="pt", return_token_type_ids=False).to('cuda')
-    input_ids = inputs.to('cuda')
+    inputs = tokenizer(qs, return_tensors="pt", return_token_type_ids=False)
+    #input_ids = torch.as_tensor(inputs.input_ids).cuda()
+    input_ids = inputs.input_ids.to('cuda')
     input_ids = torch.as_tensor(input_ids)
 
     image = load_image(args.image_file)
     image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
-
     stop_str = '</s>'
     keywords = [stop_str]
     #stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
@@ -120,14 +120,12 @@ def eval_model(args):
         print(new_text, end='', flush=True)
         #if new_text.endswith(stop_str):
             #outputs = new_text[:-len(stop_str)]
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-name", type=str, default="/kaggle/working/llavamodel")
+    parser.add_argument("--model-name", type=str, default="facebook/opt-350m")
     parser.add_argument('--llm_type', type=str, default='Chinese_llama2')
     parser.add_argument("--image-file", type=str, required=True)
     parser.add_argument("--query", type=str, required=True)
-    args = parser.parse_args()
+
 
     eval_model(args)
