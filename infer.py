@@ -112,7 +112,7 @@ def eval_model(args):
     stop_str = '</s>'
     keywords = [stop_str]
     #stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
-    generation_kwargs = dict(**inputs, streamer=streamer, max_new_tokens=200, temperature = 0.7 ,do_sample=True, repetition_penalty=1.2)
+    generation_kwargs = dict(**inputs, streamer=streamer, max_new_tokens=200, do_sample=False)
     thread = Thread(target=model.generate, kwargs=generation_kwargs)
     thread.start()
     generated_text = ""
