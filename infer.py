@@ -72,7 +72,7 @@ def eval_model(args):
     bnb_4bit_quant_type="nf4",
     bnb_4bit_compute_dtype=torch.float16
     )
-    model = LlavaLlamaForCausalLM.from_pretrained(model_name, quantization_config=bnb_config, low_cpu_mem_usage=True, torch_dtype=torch.float16, use_cache=True, device_map="auto")
+    model = LlavaLlamaForCausalLM.from_pretrained(model_name, quantization_config=bnb_config, low_cpu_mem_usage=True, use_cache=True, device_map="auto")
     image_processor = CLIPImageProcessor.from_pretrained(model.config.mm_vision_tower, torch_dtype=torch.float16)
 
     mm_use_im_start_end = getattr(model.config, "mm_use_im_start_end", False)
