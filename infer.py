@@ -99,8 +99,9 @@ def eval_model(args):
     else:
         qs = qs + '\n' + DEFAULT_IMAGE_PATCH_TOKEN * image_token_len
     
-    input_ids = [tokenize(qs, tokenizer, args.llm_type)]
-    input_ids = torch.as_tensor(input_ids).cuda()
+    #input_ids = [tokenize(qs, tokenizer, args.llm_type)]
+    inputs = tokenizer(qs, return_tensors="pt")
+    input_ids = torch.as_tensor(inputs.input_ids).cuda()
 
     image = load_image(args.image_file)
     image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
