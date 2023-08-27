@@ -126,6 +126,6 @@ if __name__ == "__main__":
     parser.add_argument('--llm_type', type=str, default='Chinese_llama2')
     parser.add_argument("--image-file", type=str, required=True)
     parser.add_argument("--query", type=str, required=True)
-
+    args = parser.parse_args()
 
     eval_model(args)
